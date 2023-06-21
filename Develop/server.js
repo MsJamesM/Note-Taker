@@ -11,16 +11,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// note functions
+// note function
 function grabData() {
   const notesPath = path.join(__dirname, "./db/db.json");
   const data = fs.readFileSync(notesPath, "utf8");
   return JSON.parse(data);
-}
-
-function writeData(notes) {
-  const notesPath = path.join(__dirname, "./db/db.json");
-  fs.writeFileSync(notesPath, JSON.stringify(notes), "utf8");
 }
 
 // routes
@@ -55,6 +50,37 @@ app.post("/api/notes", (req, res) => {
 
       console.log("Added new note:", newNote.title);
       res.json(newNote);
+    });
+  });
+});
+
+// delete note
+app.delete("/api/notes/:id", (req, res) => {
+  const filePath = "./db/db.json";
+
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    const parsedData = JSON.parse(data);
+    const noteId = parseInt(req.params.id);
+    const noteIndex = parsedData.findIndex((note) => note.id === noteId);
+    if (noteIndex === -1) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+
+    parsedData.splice(noteIndex, 1);
+
+    fs.writeFile(filePath, JSON.stringify(parsedData), (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      console.log("Deleted note with ID:", noteId);
+      res.sendStatus(204);
     });
   });
 });
