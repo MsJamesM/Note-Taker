@@ -2,27 +2,44 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const PORT = process.env.port || 3001;
 const app = express();
 
+const PORT = 3001;
+
+// middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-// get
-app.get("/notes", (req, res) =>
-  res.sendFile(path.join(__dirname, "public/notes.html"))
-);
+// note functions
+function grabData() {
+  const notesPath = path.join(__dirname, "./db/db.json");
+  const data = fs.readFileSync(notesPath, "utf8");
+  return JSON.parse(data);
+}
 
-app.get("/api/notes", (req, res) =>
-  res.sendFile(path.join(__dirname, "./db/db.json"))
-);
+function writeData(notes) {
+  const notesPath = path.join(__dirname, "./db/db.json");
+  fs.writeFileSync(notesPath, JSON.stringify(notes), "utf8");
+}
 
-// post
+// routes
+app.get("/notes", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/notes.html"));
+});
+
+app.get("/api/notes", (req, res) => {
+  let notes = grabData();
+  res.json(notes);
+});
+
 app.post("/api/notes", (req, res) => {
-  // fill
-  if (err) {
-    console.log();
-  } else {
-  }
+  const newNote = req.body;
+  const notes = grabData();
+  notes.push(newNote);
+  writeData(notes);
+  console.log("Added new note:", newNote.title);
+  res.sendStatus(200);
 });
 
 // listener
