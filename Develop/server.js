@@ -5,13 +5,16 @@ const fs = require("fs");
 const PORT = process.env.port || 3001;
 const app = express();
 
-// express
-app.use(express.json());
-app.use(express.static("public"));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
 // get
-app.get("/notes", (req, res) => res.sendFile(path.join(__dirname, " ")));
+app.get("/notes", (req, res) =>
+  res.sendFile(path.join(__dirname, "public/notes.html"))
+);
+
+app.get("/api/notes", (req, res) =>
+  res.sendFile(path.join(__dirname, "./db/db.json"))
+);
 
 // post
 app.post("/api/notes", (req, res) => {
@@ -20,10 +23,6 @@ app.post("/api/notes", (req, res) => {
     console.log();
   } else {
   }
-
-  let res = {
-    status: "note received",
-  };
 });
 
 // listener
