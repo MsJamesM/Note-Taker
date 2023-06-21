@@ -34,12 +34,29 @@ app.get("/api/notes", (req, res) => {
 });
 
 app.post("/api/notes", (req, res) => {
-  const newNote = req.body;
-  const notes = grabData();
-  notes.push(newNote);
-  writeData(notes);
-  console.log("Added new note:", newNote.title);
-  res.sendStatus(200);
+  const filePath = "./db/db.json";
+
+  // fs read & write
+  fs.readFile(filePath, "utf8", (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+    const parsedData = JSON.parse(data);
+    const newNote = req.body;
+    newNote.id = parsedData.length + 1;
+    parsedData.push(newNote);
+
+    fs.writeFile(filePath, JSON.stringify(parsedData), (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      console.log("Added new note:", newNote.title);
+      res.json(newNote);
+    });
+  });
 });
 
 // listener
